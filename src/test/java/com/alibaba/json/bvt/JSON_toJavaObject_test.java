@@ -1,5 +1,6 @@
 package com.alibaba.json.bvt;
 
+import com.alibaba.fastjson.util.ModuleUtil;
 import org.junit.Assert;
 import junit.framework.TestCase;
 
@@ -16,7 +17,8 @@ public class JSON_toJavaObject_test extends TestCase {
     }
 
     public void test_1() throws Exception {
-        A a = (A) TypeUtils.cast(new B(), A.class, ParserConfig.getGlobalInstance());
+        TypeUtils typeUtils = ModuleUtil.getObject(TypeUtils.class);
+        A a = (A) typeUtils.cast(new B(), A.class, ParserConfig.getGlobalInstance());
         Assert.assertNotNull(a);
     }
 

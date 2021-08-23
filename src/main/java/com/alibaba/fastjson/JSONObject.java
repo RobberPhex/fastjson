@@ -26,8 +26,6 @@ import static com.alibaba.fastjson.util.TypeUtils.castToFloat;
 import static com.alibaba.fastjson.util.TypeUtils.castToInt;
 import static com.alibaba.fastjson.util.TypeUtils.castToLong;
 import static com.alibaba.fastjson.util.TypeUtils.castToShort;
-import static com.alibaba.fastjson.util.TypeUtils.castToSqlDate;
-import static com.alibaba.fastjson.util.TypeUtils.castToTimestamp;
 
 import java.io.*;
 import java.lang.reflect.Field;
@@ -41,6 +39,7 @@ import java.util.*;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.alibaba.fastjson.parser.Feature;
 import com.alibaba.fastjson.parser.ParserConfig;
+import com.alibaba.fastjson.util.ModuleUtil;
 import com.alibaba.fastjson.util.TypeUtils;
 
 /**
@@ -50,6 +49,12 @@ public class JSONObject extends JSON implements Map<String, Object>, Cloneable, 
 
     private static final long         serialVersionUID         = 1L;
     private static final int          DEFAULT_INITIAL_CAPACITY = 16;
+
+    private static TypeUtils typeUtils;
+
+    static {
+        typeUtils = ModuleUtil.getObject(TypeUtils.class);
+    }
 
     private final Map<String, Object> map;
 
@@ -160,12 +165,12 @@ public class JSONObject extends JSON implements Map<String, Object>, Cloneable, 
 
     public <T> T getObject(String key, Class<T> clazz) {
         Object obj = map.get(key);
-        return TypeUtils.castToJavaBean(obj, clazz);
+        return typeUtils.castToJavaBean(obj, clazz);
     }
 
     public <T> T getObject(String key, Type type) {
         Object obj = map.get(key);
-        return TypeUtils.cast(obj, type, ParserConfig.getGlobalInstance());
+        return typeUtils.cast(obj, type, ParserConfig.getGlobalInstance());
     }
 
     public <T> T getObject(String key, TypeReference typeReference) {
@@ -173,7 +178,7 @@ public class JSONObject extends JSON implements Map<String, Object>, Cloneable, 
         if (typeReference == null) {
             return (T) obj;
         }
-        return TypeUtils.cast(obj, typeReference.getType(), ParserConfig.getGlobalInstance());
+        return typeUtils.cast(obj, typeReference.getType(), ParserConfig.getGlobalInstance());
     }
 
     public Boolean getBoolean(String key) {
@@ -337,16 +342,16 @@ public class JSONObject extends JSON implements Map<String, Object>, Cloneable, 
         return castToDate(value);
     }
 
-    public java.sql.Date getSqlDate(String key) {
+    public Object getSqlDate(String key) {
         Object value = get(key);
 
-        return castToSqlDate(value);
+        return typeUtils.castToSqlDate(value);
     }
 
-    public java.sql.Timestamp getTimestamp(String key) {
+    public Object getTimestamp(String key) {
         Object value = get(key);
 
-        return castToTimestamp(value);
+        return typeUtils.castToTimestamp(value);
     }
 
     public Object put(String key, Object value) {
@@ -491,7 +496,7 @@ public class JSONObject extends JSON implements Map<String, Object>, Cloneable, 
             }
 
             Object value = map.get(name);
-            return TypeUtils.cast(value, method.getGenericReturnType(), ParserConfig.getGlobalInstance());
+            return typeUtils.cast(value, method.getGenericReturnType(), ParserConfig.getGlobalInstance());
         }
 
         throw new UnsupportedOperationException(method.toGenericString());
@@ -568,6 +573,7 @@ public class JSONObject extends JSON implements Map<String, Object>, Cloneable, 
             }
         }
 
+        @Override
         protected Class<?> resolveClass(ObjectStreamClass desc)
                 throws IOException, ClassNotFoundException {
             String name = desc.getName();
@@ -580,18 +586,19 @@ public class JSONObject extends JSON implements Map<String, Object>, Cloneable, 
                     name = name.substring(1, name.length() - 1);
                 }
 
-                if (TypeUtils.getClassFromMapping(name) == null) {
+                if (typeUtils.getClassFromMapping(name) == null) {
                     ParserConfig.global.checkAutoType(name, null, Feature.SupportAutoType.mask);
                 }
             }
             return super.resolveClass(desc);
         }
 
+        @Override
         protected Class<?> resolveProxyClass(String[] interfaces)
                 throws IOException, ClassNotFoundException {
             for (String interfacename : interfaces) {
                 //检查是否处于黑名单
-                if (TypeUtils.getClassFromMapping(interfacename) == null) {
+                if (typeUtils.getClassFromMapping(interfacename) == null) {
                     ParserConfig.global.checkAutoType(interfacename, null);
                 }
             }
@@ -604,6 +611,7 @@ public class JSONObject extends JSON implements Map<String, Object>, Cloneable, 
         }
     }
 
+    @Override
     public <T> T toJavaObject(Class<T> clazz) {
         if (clazz == Map.class || clazz == JSONObject.class || clazz == JSON.class) {
             return (T) this;

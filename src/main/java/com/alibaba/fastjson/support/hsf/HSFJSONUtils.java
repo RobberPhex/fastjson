@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.parser.*;
+import com.alibaba.fastjson.util.ModuleUtil;
 import com.alibaba.fastjson.util.TypeUtils;
 
 import java.lang.reflect.Method;
@@ -17,6 +18,12 @@ public class HSFJSONUtils {
     final static char[]      fieldName_argsObjs   = "\"argsObjs\"".toCharArray();
 
     final static char[]      fieldName_type       = "\"@type\":".toCharArray();
+
+    private static TypeUtils typeUtils;
+
+    static {
+        typeUtils = ModuleUtil.getObject(TypeUtils.class);
+    }
 
     public static Object[] parseInvocationArguments(String json, MethodLocator methodLocator) {
         DefaultJSONParser parser = new DefaultJSONParser(json);
@@ -94,7 +101,7 @@ public class HSFJSONUtils {
                     Type argType = argTypes[i];
                     String typeName = typeNames[i];
                     if (argType != String.class) {
-                        values[i] = TypeUtils.cast(typeName, argType, parser.getConfig());
+                        values[i] = typeUtils.cast(typeName, argType, parser.getConfig());
                     } else {
                         values[i] = typeName;
                     }

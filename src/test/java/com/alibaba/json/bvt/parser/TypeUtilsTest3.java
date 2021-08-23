@@ -2,6 +2,7 @@ package com.alibaba.json.bvt.parser;
 
 import java.util.List;
 
+import com.alibaba.fastjson.util.ModuleUtil;
 import org.junit.Assert;
 import junit.framework.TestCase;
 
@@ -21,9 +22,10 @@ public class TypeUtilsTest3 extends TestCase {
     }
 
     public void test_enum_2() throws Exception {
-        Assert.assertEquals(Type.A, TypeUtils.cast("A", Type.class, null));
-        Assert.assertEquals(Type.A, TypeUtils.cast(Type.A.ordinal(), Type.class, null));
-        Assert.assertEquals(Type.B, TypeUtils.cast(Type.B.ordinal(), Type.class, null));
+        TypeUtils typeUtils = ModuleUtil.getObject(TypeUtils.class);
+        Assert.assertEquals(Type.A, typeUtils.cast("A", Type.class, null));
+        Assert.assertEquals(Type.A, typeUtils.cast(Type.A.ordinal(), Type.class, null));
+        Assert.assertEquals(Type.B, typeUtils.cast(Type.B.ordinal(), Type.class, null));
     }
 
     public void test_error() throws Exception {
@@ -51,24 +53,28 @@ public class TypeUtilsTest3 extends TestCase {
     }
 
     public void test_null() throws Exception {
-        Assert.assertEquals(null, TypeUtils.cast(null, new TypeReference<Object>() {
+        TypeUtils typeUtils = ModuleUtil.getObject(TypeUtils.class);
+        Assert.assertEquals(null, typeUtils.cast(null, new TypeReference<Object>() {
         }.getType(), null));
     }
     
     public void test_null_1() throws Exception {
-        Assert.assertEquals(null, TypeUtils.cast("", new TypeReference<List<Object>>() {
+        TypeUtils typeUtils = ModuleUtil.getObject(TypeUtils.class);
+        Assert.assertEquals(null, typeUtils.cast("", new TypeReference<List<Object>>() {
         }.getType(), null));
     }
     
     public void test_null_2() throws Exception {
-        Assert.assertEquals(null, TypeUtils.cast("", new TypeReference<Object[]>() {
+        TypeUtils typeUtils = ModuleUtil.getObject(TypeUtils.class);
+        Assert.assertEquals(null, typeUtils.cast("", new TypeReference<Object[]>() {
         }.getType(), null));
     }
     
     public void test_error_3() throws Exception {
+        TypeUtils typeUtils = ModuleUtil.getObject(TypeUtils.class);
         Exception error = null;
         try {
-            TypeUtils.cast("xxx", new TypeReference<Object[]>() {
+            typeUtils.cast("xxx", new TypeReference<Object[]>() {
             }.getType(), null);
         } catch (Exception ex) {
             error = ex;

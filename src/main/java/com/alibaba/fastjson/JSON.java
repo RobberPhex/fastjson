@@ -34,6 +34,7 @@ import com.alibaba.fastjson.parser.deserializer.FieldTypeResolver;
 import com.alibaba.fastjson.parser.deserializer.ParseProcess;
 import com.alibaba.fastjson.serializer.*;
 import com.alibaba.fastjson.util.IOUtils;
+import com.alibaba.fastjson.util.ModuleUtil;
 import com.alibaba.fastjson.util.TypeUtils;
 
 /**
@@ -72,7 +73,13 @@ public abstract class JSON implements JSONStreamAware, JSONAware {
     public static int              DEFAULT_GENERATE_FEATURE;
 
     private static final ConcurrentHashMap<Type, Type> mixInsMapper = new ConcurrentHashMap<Type, Type>(16);
-    
+
+    private static TypeUtils typeUtils;
+
+    static {
+        typeUtils = ModuleUtil.getObject(TypeUtils.class);
+    }
+
     static {
         int features = 0;
         features |= Feature.AutoCloseSource.getMask();
@@ -1233,7 +1240,7 @@ public abstract class JSON implements JSONStreamAware, JSONAware {
     }
 
     public static <T> T toJavaObject(JSON json, Class<T> clazz) {
-        return TypeUtils.cast(json, clazz, ParserConfig.getGlobalInstance());
+        return typeUtils.cast(json, clazz, ParserConfig.getGlobalInstance());
     }
     
     /**
@@ -1244,14 +1251,14 @@ public abstract class JSON implements JSONStreamAware, JSONAware {
             return (T) this;
         }
 
-        return TypeUtils.cast(this, clazz, ParserConfig.getGlobalInstance());
+        return typeUtils.cast(this, clazz, ParserConfig.getGlobalInstance());
     }
 
     /**
      * @since 1.2.33
      */
     public <T> T toJavaObject(Type type) {
-        return TypeUtils.cast(this, type, ParserConfig.getGlobalInstance());
+        return typeUtils.cast(this, type, ParserConfig.getGlobalInstance());
     }
 
     /**
@@ -1259,7 +1266,7 @@ public abstract class JSON implements JSONStreamAware, JSONAware {
      */
     public <T> T toJavaObject(TypeReference typeReference) {
         Type type = typeReference != null ? typeReference.getType() : null;
-        return TypeUtils.cast(this, type, ParserConfig.getGlobalInstance());
+        return typeUtils.cast(this, type, ParserConfig.getGlobalInstance());
     }
     
     private final static ThreadLocal<byte[]> bytesLocal = new ThreadLocal<byte[]>();

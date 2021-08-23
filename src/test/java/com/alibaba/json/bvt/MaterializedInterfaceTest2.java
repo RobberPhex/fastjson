@@ -1,5 +1,6 @@
 package com.alibaba.json.bvt;
 
+import com.alibaba.fastjson.util.ModuleUtil;
 import org.junit.Assert;
 import junit.framework.TestCase;
 
@@ -10,10 +11,11 @@ import com.alibaba.fastjson.util.TypeUtils;
 public class MaterializedInterfaceTest2 extends TestCase {
     
     public void test_parse() throws Exception {
+        TypeUtils typeUtils = ModuleUtil.getObject(TypeUtils.class);
         String text = "{\"id\":123, \"name\":\"chris\"}";
         JSONObject object = JSON.parseObject(text);
         
-        Bean bean = TypeUtils.cast(object, Bean.class, null);
+        Bean bean = typeUtils.cast(object, Bean.class, null);
         
         Assert.assertEquals(123, bean.getId());
         Assert.assertEquals("chris", bean.getName());

@@ -25,6 +25,7 @@ public class MediaContentGenDecoder extends JavaBeanDeserializer implements Obje
         
     }
     
+    @Override
     public Object createInstance(DefaultJSONParser parser, Type type) {
         return new MediaContent();
         

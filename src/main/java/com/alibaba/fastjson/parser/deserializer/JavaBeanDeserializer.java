@@ -9,6 +9,7 @@ import com.alibaba.fastjson.parser.*;
 import com.alibaba.fastjson.parser.DefaultJSONParser.ResolveTask;
 import com.alibaba.fastjson.util.FieldInfo;
 import com.alibaba.fastjson.util.JavaBeanInfo;
+import com.alibaba.fastjson.util.ModuleUtil;
 import com.alibaba.fastjson.util.TypeUtils;
 
 import java.lang.reflect.*;
@@ -21,6 +22,12 @@ import java.util.concurrent.ConcurrentMap;
 import static com.alibaba.fastjson.util.TypeUtils.fnv1a_64_magic_hashcode;
 
 public class JavaBeanDeserializer implements ObjectDeserializer {
+
+    private static TypeUtils typeUtils;
+
+    static {
+        typeUtils = ModuleUtil.getObject(TypeUtils.class);
+    }
 
     private final FieldDeserializer[]   fieldDeserializers;
     protected final FieldDeserializer[] sortedFieldDeserializers;
@@ -1481,9 +1488,9 @@ public class JavaBeanDeserializer implements ObjectDeserializer {
                     value = Jdk8DateCodec.castToLocalDateTime(value, format);
                 } else {
                     if (paramType instanceof ParameterizedType) {
-                        value = TypeUtils.cast(value, (ParameterizedType) paramType, config);
+                        value = typeUtils.cast(value, (ParameterizedType) paramType, config);
                     } else {
-                        value = TypeUtils.cast(value, paramType, config);
+                        value = typeUtils.cast(value, paramType, config);
                     }
                 }
 
@@ -1568,7 +1575,7 @@ public class JavaBeanDeserializer implements ObjectDeserializer {
                             }
                         }
                     } else if (param.getClass() != beanInfo.fields[i].fieldClass){
-                        params[i] = TypeUtils.cast(param, beanInfo.fields[i].fieldClass, config);
+                        params[i] = typeUtils.cast(param, beanInfo.fields[i].fieldClass, config);
                     }
                 }
             }

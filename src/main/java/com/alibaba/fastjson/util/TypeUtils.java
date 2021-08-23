@@ -83,7 +83,7 @@ public class TypeUtils{
     private static volatile boolean kotlin_error;
     private static volatile Map<Class,String[]> kotlinIgnores;
     private static volatile boolean kotlinIgnores_error;
-    private static ConcurrentMap<String,Class<?>> mappings = new ConcurrentHashMap<String,Class<?>>(256, 0.75f, 1);
+    protected ConcurrentMap<String,Class<?>> mappings = new ConcurrentHashMap<String,Class<?>>(256, 0.75f, 1);
     private static Class<?> pathClass;
     private static boolean pathClass_error = false;
 
@@ -102,7 +102,7 @@ public class TypeUtils{
 
     private static Class class_deque = null;
 
-    static {
+    public TypeUtils() {
         try {
             TypeUtils.compatibleWithJavaBean = "true".equals(IOUtils.getStringProperty(IOUtils.FASTJSON_COMPATIBLEWITHJAVABEAN));
             TypeUtils.compatibleWithFieldName = "true".equals(IOUtils.getStringProperty(IOUtils.FASTJSON_COMPATIBLEWITHFIELDNAME));
@@ -115,9 +115,6 @@ public class TypeUtils{
         } catch (Throwable e) {
             // skip
         }
-    }
-
-    static{
         addBaseClassMappings();
     }
 
@@ -194,39 +191,8 @@ public class TypeUtils{
         return  TypeUtils.getAnnotation(clazz, class_XmlAccessorType);
     }
 
-//
-//    public static boolean isXmlAccessType(Class clazz) {
-//        if (class_XmlAccessType == null && !class_XmlAccessType_error) {
-//
-//            try{
-//                class_XmlAccessType = Class.forName("javax.xml.bind.annotation.XmlAccessType");
-//            } catch(Throwable ex){
-//                class_XmlAccessType_error = true;
-//            }
-//        }
-//
-//        if (class_XmlAccessType == null) {
-//            return false;
-//        }
-//
-//        return  class_XmlAccessType.isAssignableFrom(clazz);
-//    }
-
-    public static boolean isClob(Class clazz) {
-        if (class_Clob == null && !class_Clob_error) {
-
-            try{
-                class_Clob = Class.forName("java.sql.Clob");
-            } catch(Throwable ex){
-                class_Clob_error = true;
-            }
-        }
-
-        if (class_Clob == null) {
-            return false;
-        }
-
-        return  class_Clob.isAssignableFrom(clazz);
+    public boolean isClob(Class clazz) {
+        return false;
     }
 
     public static String castToString(Object value){
@@ -572,49 +538,8 @@ public class TypeUtils{
         return new Date(longValue);
     }
 
-    public static java.sql.Date castToSqlDate(Object value){
-        if(value == null){
-            return null;
-        }
-        if(value instanceof java.sql.Date){
-            return (java.sql.Date) value;
-        }
-        if(value instanceof java.util.Date){
-            return new java.sql.Date(((java.util.Date) value).getTime());
-        }
-        if(value instanceof Calendar){
-            return new java.sql.Date(((Calendar) value).getTimeInMillis());
-        }
-
-        long longValue = 0;
-        if(value instanceof BigDecimal){
-            longValue = longValue((BigDecimal) value);
-        } else if(value instanceof Number){
-            longValue = ((Number) value).longValue();
-        }
-
-        if(value instanceof String){
-            String strVal = (String) value;
-            if(strVal.length() == 0 //
-                    || "null".equals(strVal) //
-                    || "NULL".equals(strVal)){
-                return null;
-            }
-            if(isNumber(strVal)){
-                longValue = Long.parseLong(strVal);
-            } else{
-                JSONScanner scanner = new JSONScanner(strVal);
-                if(scanner.scanISO8601DateIfMatch(false)){
-                    longValue = scanner.getCalendar().getTime().getTime();
-                } else{
-                    throw new JSONException("can not cast to Timestamp, value : " + strVal);
-                }
-            }
-        }
-        if(longValue <= 0){
-            throw new JSONException("can not cast to Date, value : " + value); // TODO 忽略 1970-01-01 之前的时间处理？
-        }
-        return new java.sql.Date(longValue);
+    public Object castToSqlDate(Object value) {
+        throw new JSONException("can not cast to Date, value : " + value); // TODO 忽略 1970-01-01 之前的时间处理？
     }
 
     public static long longExtractValue(Number number) {
@@ -625,145 +550,15 @@ public class TypeUtils{
         return number.longValue();
     }
 
-    public static java.sql.Time castToSqlTime(Object value){
-        if(value == null){
-            return null;
-        }
-        if(value instanceof java.sql.Time){
-            return (java.sql.Time) value;
-        }
-        if(value instanceof java.util.Date){
-            return new java.sql.Time(((java.util.Date) value).getTime());
-        }
-        if(value instanceof Calendar){
-            return new java.sql.Time(((Calendar) value).getTimeInMillis());
-        }
-
-        long longValue = 0;
-        if(value instanceof BigDecimal){
-            longValue = longValue((BigDecimal) value);
-        } else if(value instanceof Number){
-            longValue = ((Number) value).longValue();
-        }
-
-        if (value instanceof String) {
-            String strVal = (String) value;
-            if (strVal.length() == 0 //
-                    || "null".equalsIgnoreCase(strVal)) {
-                return null;
-            }
-
-            if (isNumber(strVal)) {
-                longValue = Long.parseLong(strVal);
-            } else {
-                if (strVal.length() == 8 && strVal.charAt(2) == ':' && strVal.charAt(5) == ':') {
-                    return java.sql.Time.valueOf(strVal);
-                }
-
-                JSONScanner scanner = new JSONScanner(strVal);
-                if (scanner.scanISO8601DateIfMatch(false)) {
-                    longValue = scanner.getCalendar().getTime().getTime();
-                } else {
-                    throw new JSONException("can not cast to Timestamp, value : " + strVal);
-                }
-
-            }
-        }
-        if(longValue <= 0){
-            throw new JSONException("can not cast to Date, value : " + value); // TODO 忽略 1970-01-01 之前的时间处理？
-        }
-        return new java.sql.Time(longValue);
+    public Object castToSqlTime(Object value) {
+        throw new JSONException("can not cast to Date, value : " + value); // TODO 忽略 1970-01-01 之前的时间处理？
     }
 
-    public static java.sql.Timestamp castToTimestamp(Object value){
-        if(value == null){
-            return null;
-        }
-        if(value instanceof Calendar){
-            return new java.sql.Timestamp(((Calendar) value).getTimeInMillis());
-        }
-        if(value instanceof java.sql.Timestamp){
-            return (java.sql.Timestamp) value;
-        }
-        if(value instanceof java.util.Date){
-            return new java.sql.Timestamp(((java.util.Date) value).getTime());
-        }
-        long longValue = 0;
-        if(value instanceof BigDecimal){
-            longValue = longValue((BigDecimal) value);
-        } else if(value instanceof Number){
-            longValue = ((Number) value).longValue();
-        }
-        if(value instanceof String){
-            String strVal = (String) value;
-            if(strVal.length() == 0 //
-                    || "null".equals(strVal) //
-                    || "NULL".equals(strVal)){
-                return null;
-            }
-            if(strVal.endsWith(".000000000")){
-                strVal = strVal.substring(0, strVal.length() - 10);
-            } else if(strVal.endsWith(".000000")){
-                strVal = strVal.substring(0, strVal.length() - 7);
-            }
-
-            if (strVal.length() == 29
-                    && strVal.charAt(4) == '-'
-                    && strVal.charAt(7) == '-'
-                    && strVal.charAt(10) == ' '
-                    && strVal.charAt(13) == ':'
-                    && strVal.charAt(16) == ':'
-                    && strVal.charAt(19) == '.') {
-                int year = num(
-                        strVal.charAt(0),
-                        strVal.charAt(1),
-                        strVal.charAt(2),
-                        strVal.charAt(3));
-                int month = num(
-                        strVal.charAt(5),
-                        strVal.charAt(6));
-                int day = num(
-                        strVal.charAt(8),
-                        strVal.charAt(9));
-                int hour = num(
-                        strVal.charAt(11),
-                        strVal.charAt(12));
-                int minute = num(
-                        strVal.charAt(14),
-                        strVal.charAt(15));
-                int second = num(
-                        strVal.charAt(17),
-                        strVal.charAt(18));
-                int nanos = num(
-                        strVal.charAt(20),
-                        strVal.charAt(21),
-                        strVal.charAt(22),
-                        strVal.charAt(23),
-                        strVal.charAt(24),
-                        strVal.charAt(25),
-                        strVal.charAt(26),
-                        strVal.charAt(27),
-                        strVal.charAt(28));
-                return new java.sql.Timestamp(year - 1900, month - 1, day, hour, minute, second, nanos);
-            }
-
-            if(isNumber(strVal)){
-                longValue = Long.parseLong(strVal);
-            } else {
-                JSONScanner scanner = new JSONScanner(strVal);
-                if(scanner.scanISO8601DateIfMatch(false)){
-                    longValue = scanner.getCalendar().getTime().getTime();
-                } else{
-                    throw new JSONException("can not cast to Timestamp, value : " + strVal);
-                }
-            }
-        }
-
-
-        return new java.sql.Timestamp(longValue);
+    public Object castToTimestamp(Object value) {
+        throw new JSONException("can not cast to Timestamp, value : " + value);
     }
 
-    static int num(char c0, char c1) {
+    protected static int num(char c0, char c1) {
         if (c0 >= '0'
                 && c0 <= '9'
                 && c1 >= '0'
@@ -776,7 +571,7 @@ public class TypeUtils{
         return -1;
     }
 
-    static int num(char c0, char c1, char c2, char c3) {
+    protected static int num(char c0, char c1, char c2, char c3) {
         if (c0 >= '0'
                 && c0 <= '9'
                 && c1 >= '0'
@@ -795,7 +590,7 @@ public class TypeUtils{
         return -1;
     }
 
-    static int num(char c0, char c1, char c2, char c3, char c4, char c5, char c6, char c7, char c8) {
+    protected static int num(char c0, char c1, char c2, char c3, char c4, char c5, char c6, char c7, char c8) {
         if (c0 >= '0'
                 && c0 <= '9'
                 && c1 >= '0'
@@ -1058,12 +853,12 @@ public class TypeUtils{
         throw new JSONException("can not cast to boolean, value : " + value);
     }
 
-    public static <T> T castToJavaBean(Object obj, Class<T> clazz){
-        return cast(obj, clazz, ParserConfig.getGlobalInstance());
+    public <T> T castToJavaBean(Object obj, Class<T> clazz){
+        return this.cast(obj, clazz, ParserConfig.getGlobalInstance());
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static <T> T cast(Object obj, Class<T> clazz, ParserConfig config){
+    public <T> T cast(Object obj, Class<T> clazz, ParserConfig config){
         if(obj == null){
             if(clazz == int.class){
                 return (T) Integer.valueOf(0);
@@ -1170,18 +965,6 @@ public class TypeUtils{
 
         if(clazz == Date.class){
             return (T) castToDate(obj);
-        }
-
-        if(clazz == java.sql.Date.class){
-            return (T) castToSqlDate(obj);
-        }
-
-        if(clazz == java.sql.Time.class){
-            return (T) castToSqlTime(obj);
-        }
-
-        if(clazz == java.sql.Timestamp.class){
-            return (T) castToTimestamp(obj);
         }
 
         if(clazz.isEnum()){
@@ -1297,7 +1080,7 @@ public class TypeUtils{
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> T cast(Object obj, Type type, ParserConfig mapping){
+    public <T> T cast(Object obj, Type type, ParserConfig mapping){
         if(obj == null){
             return null;
         }
@@ -1322,7 +1105,7 @@ public class TypeUtils{
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public static <T> T cast(Object obj, ParameterizedType type, ParserConfig mapping) {
+    public <T> T cast(Object obj, ParameterizedType type, ParserConfig mapping) {
         Type rawTye = type.getRawType();
 
         if(rawTye == List.class || rawTye == ArrayList.class){
@@ -1552,7 +1335,7 @@ public class TypeUtils{
         }
     }
 
-    private static void addBaseClassMappings(){
+    private void addBaseClassMappings(){
         mappings.put("byte", byte.class);
         mappings.put("short", short.class);
         mappings.put("int", int.class);
@@ -1643,9 +1426,6 @@ public class TypeUtils{
                 java.util.Date.class,
                 java.util.Locale.class,
                 java.util.UUID.class,
-                java.sql.Time.class,
-                java.sql.Date.class,
-                java.sql.Timestamp.class,
                 java.text.SimpleDateFormat.class,
                 com.alibaba.fastjson.JSONObject.class,
                 com.alibaba.fastjson.JSONPObject.class,
@@ -1659,16 +1439,16 @@ public class TypeUtils{
         }
     }
 
-    public static void clearClassMapping(){
+    public void clearClassMapping(){
         mappings.clear();
         addBaseClassMappings();
     }
 
-    public static void addMapping(String className, Class<?> clazz) {
+    public void addMapping(String className, Class<?> clazz) {
         mappings.put(className, clazz);
     }
 
-    public static Class<?> loadClass(String className){
+    public Class<?> loadClass(String className){
         return loadClass(className, null);
     }
 
@@ -1686,15 +1466,15 @@ public class TypeUtils{
         return false;
     }
 
-    public static Class<?> getClassFromMapping(String className){
+    public Class<?> getClassFromMapping(String className){
         return mappings.get(className);
     }
 
-    public static Class<?> loadClass(String className, ClassLoader classLoader) {
+    public Class<?> loadClass(String className, ClassLoader classLoader) {
         return loadClass(className, classLoader, false);
     }
 
-    public static Class<?> loadClass(String className, ClassLoader classLoader, boolean cache) {
+    public Class<?> loadClass(String className, ClassLoader classLoader, boolean cache) {
         if(className == null || className.length() == 0){
             return null;
         }

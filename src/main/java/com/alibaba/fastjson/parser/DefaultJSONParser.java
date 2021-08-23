@@ -21,6 +21,7 @@ import com.alibaba.fastjson.serializer.BeanContext;
 import com.alibaba.fastjson.serializer.IntegerCodec;
 import com.alibaba.fastjson.serializer.LongCodec;
 import com.alibaba.fastjson.serializer.StringCodec;
+import com.alibaba.fastjson.util.ModuleUtil;
 import com.alibaba.fastjson.util.TypeUtils;
 
 import java.io.Closeable;
@@ -64,6 +65,8 @@ public class DefaultJSONParser implements Closeable {
     public final static int            NeedToResolve      = 1;
     public final static int            TypeNameRedirect   = 2;
 
+    private static TypeUtils typeUtils;
+
     public int                         resolveStatus      = NONE;
 
     private List<ExtraTypeProvider>    extraTypeProviders = null;
@@ -78,6 +81,7 @@ public class DefaultJSONParser implements Closeable {
     protected transient BeanContext    lastBeanContext;
 
     static {
+        typeUtils = ModuleUtil.getObject(TypeUtils.class);
         Class<?>[] classes = new Class[] {
                 boolean.class,
                 byte.class,
@@ -122,7 +126,6 @@ public class DefaultJSONParser implements Closeable {
 
     /**
      * @deprecated
-     * @see setDateFormat
      */
     public void setDateFomrat(DateFormat dateFormat) {
         this.setDateFormat(dateFormat);
@@ -359,7 +362,7 @@ public class DefaultJSONParser implements Closeable {
                             Object instance = null;
                             ObjectDeserializer deserializer = this.config.getDeserializer(clazz);
                             if (deserializer instanceof JavaBeanDeserializer) {
-                            	instance = TypeUtils.cast(object, clazz, this.config);
+                            	instance = typeUtils.cast(object, clazz, this.config);
                             }
 
                             if (instance == null) {
@@ -390,7 +393,7 @@ public class DefaultJSONParser implements Closeable {
                     }
 
                     if (object.size() > 0) {
-                        Object newObj = TypeUtils.cast(object, clazz, this.config);
+                        Object newObj = typeUtils.cast(object, clazz, this.config);
                         this.setResolveStatus(NONE);
                         this.parseObject(newObj);
                         return newObj;
@@ -848,7 +851,7 @@ public class DefaultJSONParser implements Closeable {
                         lexer.nextToken(JSONToken.COMMA);
                     } else {
                         value = this.parse();
-                        value = TypeUtils.cast(value, type, config);
+                        value = typeUtils.cast(value, type, config);
                     }
                 } else if (type == String.class) {
                     if (lexer.token() == JSONToken.LITERAL_STRING) {
@@ -856,7 +859,7 @@ public class DefaultJSONParser implements Closeable {
                         lexer.nextToken(JSONToken.COMMA);
                     } else {
                         value = this.parse();
-                        value = TypeUtils.cast(value, type, config);
+                        value = typeUtils.cast(value, type, config);
                     }
                 } else {
                     boolean isArray = false;
@@ -895,7 +898,7 @@ public class DefaultJSONParser implements Closeable {
                             }
                         }
 
-                        value = TypeUtils.cast(varList, type, config);
+                        value = typeUtils.cast(varList, type, config);
                     } else {
                         ObjectDeserializer deserializer = config.getDeserializer(type);
                         value = deserializer.deserialze(this, type, i);

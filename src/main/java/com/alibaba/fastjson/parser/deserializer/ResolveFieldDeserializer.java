@@ -8,10 +8,17 @@ import java.util.Map;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.parser.DefaultJSONParser;
+import com.alibaba.fastjson.util.ModuleUtil;
 import com.alibaba.fastjson.util.TypeUtils;
 
 @SuppressWarnings("rawtypes")
 public final class ResolveFieldDeserializer extends FieldDeserializer {
+
+    private static TypeUtils typeUtils;
+
+    static {
+        typeUtils = ModuleUtil.getObject(TypeUtils.class);
+    }
 
     private final int               index;
     private final List              list;
@@ -60,6 +67,7 @@ public final class ResolveFieldDeserializer extends FieldDeserializer {
         this.collection = collection;
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public void setValue(Object object, Object value) {
         if (map != null) {
@@ -84,7 +92,7 @@ public final class ResolveFieldDeserializer extends FieldDeserializer {
                 if (arrayLength > index) {
                     Object item;
                     if (jsonArray.getComponentType() != null) {
-                        item = TypeUtils.cast(value, jsonArray.getComponentType(), parser.getConfig());
+                        item = typeUtils.cast(value, jsonArray.getComponentType(), parser.getConfig());
                     } else {
                         item = value;
                     }
@@ -94,6 +102,7 @@ public final class ResolveFieldDeserializer extends FieldDeserializer {
         }
     }
 
+    @Override
     public void parseField(DefaultJSONParser parser, Object object, Type objectType, Map<String, Object> fieldValues) {
 
     }

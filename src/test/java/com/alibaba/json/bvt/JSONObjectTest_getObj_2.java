@@ -2,6 +2,7 @@ package com.alibaba.json.bvt;
 
 import java.lang.reflect.Type;
 
+import com.alibaba.fastjson.util.ModuleUtil;
 import org.junit.Assert;
 
 import com.alibaba.fastjson.JSONObject;
@@ -21,8 +22,9 @@ public class JSONObjectTest_getObj_2 extends TestCase {
     }
     
     public void test_get_null() throws Exception {
-        TypeUtils.cast("null", getType(), ParserConfig.getGlobalInstance());
-        TypeUtils.cast("", getType(), ParserConfig.getGlobalInstance());
+        TypeUtils typeUtils = ModuleUtil.getObject(TypeUtils.class);
+        typeUtils.cast("null", getType(), ParserConfig.getGlobalInstance());
+        typeUtils.cast("", getType(), ParserConfig.getGlobalInstance());
     }
     
     public static class Model {

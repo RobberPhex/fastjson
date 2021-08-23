@@ -31,6 +31,7 @@ public class DepartmentCodec extends JavaBeanDeserializer implements ObjectDeser
         type_gen_deser__ = config.getDeserializer(com.alibaba.json.test.codegen.DepartmentType.class);
     }
     
+    @Override
     public Object createInstance(DefaultJSONParser parser, Type type) {
         return new Department();
         

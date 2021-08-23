@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
 import com.alibaba.fastjson.parser.ParserConfig;
+import com.alibaba.fastjson.util.ModuleUtil;
 import org.junit.Assert;
 
 import com.alibaba.fastjson.JSON;
@@ -84,22 +85,24 @@ public class TypeUtilsTest_castToJavaBean extends TestCase {
     }
 
     public void test_mapping() throws Exception {
+        TypeUtils typeUtils = ModuleUtil.getObject(TypeUtils.class);
         addClassMapping("my_xxx", VO.class);
         addClassMapping(null, VO.class);
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("@type", "my_xxx");
         map.put("id", 123);
-        VO vo = (VO) TypeUtils.castToJavaBean(map, Object.class);
+        VO vo = (VO) typeUtils.castToJavaBean(map, Object.class);
         Assert.assertEquals(123, vo.getId());
-        TypeUtils.clearClassMapping();
+        typeUtils.clearClassMapping();
     }
     
     public static void addClassMapping(String className, Class<?> clazz) throws Exception {
+        TypeUtils typeUtils = ModuleUtil.getObject(TypeUtils.class);
         Field field = TypeUtils.class.getDeclaredField("mappings");
         field.setAccessible(true);
-        field.get(null);
+        field.get(typeUtils);
         
-        ConcurrentMap<String, Class<?>> mappings = (ConcurrentMap<String, Class<?>>) field.get(null);
+        ConcurrentMap<String, Class<?>> mappings = (ConcurrentMap<String, Class<?>>) field.get(typeUtils);
         
         if (className == null) {
             className = clazz.getName();
@@ -109,53 +112,62 @@ public class TypeUtilsTest_castToJavaBean extends TestCase {
     }
 
     public void test_interface() throws Exception {
+        TypeUtils typeUtils = ModuleUtil.getObject(TypeUtils.class);
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("id", 123);
-        VO vo = TypeUtils.castToJavaBean(map, VO.class);
+        VO vo = typeUtils.castToJavaBean(map, VO.class);
         Assert.assertEquals(123, vo.getId());
     }
 
     public void test_bean() throws Exception {
+        TypeUtils typeUtils = ModuleUtil.getObject(TypeUtils.class);
+
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("id", 123);
-        Entity vo = TypeUtils.castToJavaBean(map, Entity.class);
+        Entity vo = typeUtils.castToJavaBean(map, Entity.class);
         Assert.assertEquals(123, vo.getId());
 
         Assert.assertEquals("{\"id\":123}", JSON.toJSONString(vo));
     }
 
     public void test_loadClass() throws Exception {
-        Assert.assertNull(TypeUtils.loadClass(null));
-        Assert.assertNull(TypeUtils.loadClass(""));
+        TypeUtils typeUtils = ModuleUtil.getObject(TypeUtils.class);
+        Assert.assertNull(typeUtils.loadClass(null));
+        Assert.assertNull(typeUtils.loadClass(""));
     }
 
     public void test_loadClass_1() throws Exception {
-        TypeUtils.clearClassMapping();
+        TypeUtils typeUtils= ModuleUtil.getObject(TypeUtils.class);
+
+        typeUtils.clearClassMapping();
         ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
         Thread.currentThread().setContextClassLoader(new TestLoader());
         try {
             Assert.assertEquals(VO.class,
-                                TypeUtils.loadClass("com.alibaba.json.bvt.parser.TypeUtilsTest_castToJavaBean$VO"));
+                    typeUtils.loadClass("com.alibaba.json.bvt.parser.TypeUtilsTest_castToJavaBean$VO"));
         } finally {
             Thread.currentThread().setContextClassLoader(contextClassLoader);
         }
     }
 
     public void test_loadClass_2() throws Exception {
-        TypeUtils.clearClassMapping();
+        TypeUtils typeUtils= ModuleUtil.getObject(TypeUtils.class);
+        typeUtils.clearClassMapping();
         ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
         Thread.currentThread().setContextClassLoader(new TestLoader());
         try {
-            Assert.assertNull(TypeUtils.loadClass("xxx_xx"));
+            Assert.assertNull(typeUtils.loadClass("xxx_xx"));
         } finally {
             Thread.currentThread().setContextClassLoader(contextClassLoader);
         }
     }
     
     public void test_bean_2() throws Exception {
+        TypeUtils typeUtils= ModuleUtil.getObject(TypeUtils.class);
+
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("id", 123);
-        PO vo = TypeUtils.castToJavaBean(map, PO.class);
+        PO vo = typeUtils.castToJavaBean(map, PO.class);
         Assert.assertEquals(123, vo.id);
         
         SerializeWriter out = new SerializeWriter();
@@ -176,9 +188,11 @@ public class TypeUtilsTest_castToJavaBean extends TestCase {
     }
     
     public void test_bean_3() throws Exception {
+        TypeUtils typeUtils= ModuleUtil.getObject(TypeUtils.class);
+
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("id", 123);
-        PO vo = TypeUtils.castToJavaBean(map, PO.class);
+        PO vo = typeUtils.castToJavaBean(map, PO.class);
         Assert.assertEquals(123, vo.id);
         
         SerializeWriter out = new SerializeWriter();

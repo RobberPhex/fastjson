@@ -26,6 +26,7 @@ public class ImageGenDecoder extends JavaBeanDeserializer implements ObjectDeser
         size_gen_deser__ = config.getDeserializer(data.media.Image.Size.class);
     }
     
+    @Override
     public Object createInstance(DefaultJSONParser parser, Type type) {
         return new Image();
         

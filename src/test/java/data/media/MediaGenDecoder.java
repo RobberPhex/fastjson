@@ -37,6 +37,7 @@ public class MediaGenDecoder extends JavaBeanDeserializer implements ObjectDeser
         player_gen_deser__ = config.getDeserializer(data.media.Media.Player.class);
     }
     
+    @Override
     public Object createInstance(DefaultJSONParser parser, Type type) {
         return new Media();
         

@@ -13,9 +13,16 @@ import com.alibaba.fastjson.parser.JSONLexer;
 import com.alibaba.fastjson.parser.JSONToken;
 import com.alibaba.fastjson.parser.ParserConfig;
 import com.alibaba.fastjson.util.FieldInfo;
+import com.alibaba.fastjson.util.ModuleUtil;
 import com.alibaba.fastjson.util.TypeUtils;
 
 public class ThrowableDeserializer extends JavaBeanDeserializer {
+
+    private static TypeUtils typeUtils;
+
+    static {
+        typeUtils = ModuleUtil.getObject(TypeUtils.class);
+    }
 
     public ThrowableDeserializer(ParserConfig mapping, Class<?> clazz){
         super(mapping, clazz, clazz);
@@ -150,7 +157,7 @@ public class ThrowableDeserializer extends JavaBeanDeserializer {
                     if (fieldDeserializer != null) {
                         FieldInfo fieldInfo = fieldDeserializer.fieldInfo;
                         if (!fieldInfo.fieldClass.isInstance(value)) {
-                            value = TypeUtils.cast(value, fieldInfo.fieldType, parser.getConfig());
+                            value = typeUtils.cast(value, fieldInfo.fieldType, parser.getConfig());
                         }
                         fieldDeserializer.setValue(ex, value);
                     }
@@ -198,6 +205,7 @@ public class ThrowableDeserializer extends JavaBeanDeserializer {
         return null;
     }
 
+    @Override
     public int getFastMatchToken() {
         return JSONToken.LBRACE;
     }

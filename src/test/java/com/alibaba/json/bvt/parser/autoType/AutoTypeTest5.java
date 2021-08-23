@@ -3,6 +3,7 @@ package com.alibaba.json.bvt.parser.autoType;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.parser.ParserConfig;
+import com.alibaba.fastjson.util.ModuleUtil;
 import com.alibaba.fastjson.util.TypeUtils;
 import junit.framework.TestCase;
 
@@ -15,10 +16,11 @@ public class AutoTypeTest5 extends TestCase {
     private static int count_x = 0;
 
     protected void setUp() throws Exception {
+        TypeUtils typeUtils = ModuleUtil.getObject(TypeUtils.class);
         Field field = TypeUtils.class.getDeclaredField("mappings");
         field.setAccessible(true);
 
-        mappings = (ConcurrentMap<String,Class<?>>) field.get(null);
+        mappings = (ConcurrentMap<String,Class<?>>) field.get(typeUtils);
     }
 
     public void test_0() throws Exception {

@@ -31,6 +31,7 @@ import java.nio.charset.Charset;
 import java.security.AccessControlException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -66,20 +67,23 @@ import static com.alibaba.fastjson.util.TypeUtils.fnv1a_64_magic_prime;
  */
 public class ParserConfig {
 
-    public static final String    DENY_PROPERTY_INTERNAL    = "fastjson.parser.deny.internal";
-    public static final String    DENY_PROPERTY             = "fastjson.parser.deny";
-    public static final String    AUTOTYPE_ACCEPT           = "fastjson.parser.autoTypeAccept";
-    public static final String    AUTOTYPE_SUPPORT_PROPERTY = "fastjson.parser.autoTypeSupport";
-    public static final String    SAFE_MODE_PROPERTY        = "fastjson.parser.safeMode";
+    public static final String DENY_PROPERTY_INTERNAL = "fastjson.parser.deny.internal";
+    public static final String DENY_PROPERTY = "fastjson.parser.deny";
+    public static final String AUTOTYPE_ACCEPT = "fastjson.parser.autoTypeAccept";
+    public static final String AUTOTYPE_SUPPORT_PROPERTY = "fastjson.parser.autoTypeSupport";
+    public static final String SAFE_MODE_PROPERTY = "fastjson.parser.safeMode";
 
-    public static  final String[] DENYS_INTERNAL;
-    public static  final String[] DENYS;
+    public static final String[] DENYS_INTERNAL;
+    public static final String[] DENYS;
     private static final String[] AUTO_TYPE_ACCEPT_LIST;
-    public static  final boolean  AUTO_SUPPORT;
-    public static  final boolean  SAFE_MODE;
-    private static final long[]   INTERNAL_WHITELIST_HASHCODES;
+    public static final boolean AUTO_SUPPORT;
+    public static final boolean SAFE_MODE;
+    private static final long[] INTERNAL_WHITELIST_HASHCODES;
 
-    static  {
+    private static TypeUtils typeUtils;
+
+    static {
+        typeUtils = ModuleUtil.getObject(TypeUtils.class);
         {
             String property = IOUtils.getStringProperty(DENY_PROPERTY_INTERNAL);
             DENYS_INTERNAL = splitItemsFormProperty(property);
@@ -105,7 +109,7 @@ public class ParserConfig {
             AUTO_TYPE_ACCEPT_LIST = items;
         }
 
-        INTERNAL_WHITELIST_HASHCODES = new long[] {
+        INTERNAL_WHITELIST_HASHCODES = new long[]{
                 0x82E8E13016B73F9EL,
                 0x863D2DD1E82B9ED9L,
                 0x8B2081CB3A50BD44L,
@@ -169,40 +173,41 @@ public class ParserConfig {
     public static ParserConfig getGlobalInstance() {
         return global;
     }
-    public static ParserConfig                              global                = new ParserConfig();
 
-    private final IdentityHashMap<Type, ObjectDeserializer> deserializers         = new IdentityHashMap<Type, ObjectDeserializer>();
+    public static ParserConfig global = new ParserConfig();
+
+    private final IdentityHashMap<Type, ObjectDeserializer> deserializers = new IdentityHashMap<Type, ObjectDeserializer>();
     private final IdentityHashMap<Type, IdentityHashMap<Type, ObjectDeserializer>> mixInDeserializers = new IdentityHashMap<Type, IdentityHashMap<Type, ObjectDeserializer>>(16);
-    private final ConcurrentMap<String,Class<?>>            typeMapping           = new ConcurrentHashMap<String,Class<?>>(16, 0.75f, 1);
+    private final ConcurrentMap<String, Class<?>> typeMapping = new ConcurrentHashMap<String, Class<?>>(16, 0.75f, 1);
 
-    private boolean                                         asmEnable             = !ASMUtils.IS_ANDROID;
+    private boolean asmEnable = !ASMUtils.IS_ANDROID;
 
-    public final SymbolTable                                symbolTable           = new SymbolTable(4096);
+    public final SymbolTable symbolTable = new SymbolTable(4096);
 
-    public PropertyNamingStrategy                           propertyNamingStrategy;
+    public PropertyNamingStrategy propertyNamingStrategy;
 
-    protected ClassLoader                                   defaultClassLoader;
+    protected ClassLoader defaultClassLoader;
 
-    protected ASMDeserializerFactory                        asmFactory;
+    protected ASMDeserializerFactory asmFactory;
 
-    private static boolean                                  awtError              = false;
-    private static boolean                                  jdk8Error             = false;
-    private static boolean                                  jodaError             = false;
-    private static boolean                                  guavaError            = false;
+    private static boolean awtError = false;
+    private static boolean jdk8Error = false;
+    private static boolean jodaError = false;
+    private static boolean guavaError = false;
 
-    private boolean                                         autoTypeSupport       = AUTO_SUPPORT;
-    private long[]                                          internalDenyHashCodes;
-    private long[]                                          denyHashCodes;
-    private long[]                                          acceptHashCodes;
+    private boolean autoTypeSupport = AUTO_SUPPORT;
+    private long[] internalDenyHashCodes;
+    private long[] denyHashCodes;
+    private long[] acceptHashCodes;
 
 
-    public final boolean                                    fieldBased;
-    private boolean                                         jacksonCompatible     = false;
+    public final boolean fieldBased;
+    private boolean jacksonCompatible = false;
 
-    public boolean                                          compatibleWithJavaBean = TypeUtils.compatibleWithJavaBean;
-    private List<Module>                                    modules                = new ArrayList<Module>();
-    private volatile List<AutoTypeCheckHandler>             autoTypeCheckHandlers;
-    private boolean                                         safeMode               = SAFE_MODE;
+    public boolean compatibleWithJavaBean = TypeUtils.compatibleWithJavaBean;
+    private List<Module> modules = new ArrayList<Module>();
+    private volatile List<AutoTypeCheckHandler> autoTypeCheckHandlers;
+    private boolean safeMode = SAFE_MODE;
 
     {
         denyHashCodes = new long[]{
@@ -353,23 +358,23 @@ public class ParserConfig {
         acceptHashCodes = hashCodes;
     }
 
-    public ParserConfig(){
+    public ParserConfig() {
         this(false);
     }
 
-    public ParserConfig(boolean fieldBase){
+    public ParserConfig(boolean fieldBase) {
         this(null, null, fieldBase);
     }
 
-    public ParserConfig(ClassLoader parentClassLoader){
+    public ParserConfig(ClassLoader parentClassLoader) {
         this(null, parentClassLoader, false);
     }
 
-    public ParserConfig(ASMDeserializerFactory asmFactory){
+    public ParserConfig(ASMDeserializerFactory asmFactory) {
         this(asmFactory, null, false);
     }
 
-    private ParserConfig(ASMDeserializerFactory asmFactory, ClassLoader parentClassLoader, boolean fieldBased){
+    private ParserConfig(ASMDeserializerFactory asmFactory, ClassLoader parentClassLoader, boolean fieldBased) {
         this.fieldBased = fieldBased;
         if (asmFactory == null && !ASMUtils.IS_ANDROID) {
             try {
@@ -403,10 +408,16 @@ public class ParserConfig {
 
     private void initDeserializers() {
         deserializers.put(SimpleDateFormat.class, MiscCodec.instance);
-        deserializers.put(java.sql.Timestamp.class, SqlDateDeserializer.instance_timestamp);
-        deserializers.put(java.sql.Date.class, SqlDateDeserializer.instance);
-        deserializers.put(java.sql.Time.class, TimeDeserializer.instance);
-        deserializers.put(java.util.Date.class, DateCodec.instance);
+
+        ModuleUtil.callWhenJavaSql(new Runnable() {
+            public void run() {
+                deserializers.put(java.sql.Timestamp.class, SqlDateDeserializer.instance_timestamp);
+                deserializers.put(java.sql.Date.class, SqlDateDeserializer.instance);
+                deserializers.put(java.sql.Time.class, TimeDeserializer.instance);
+                deserializers.put(java.util.Date.class, DateCodec.instance);
+            }
+        });
+
         deserializers.put(Calendar.class, CalendarCodec.instance);
         deserializers.put(XMLGregorianCalendar.class, CalendarCodec.instance);
 
@@ -484,7 +495,7 @@ public class ParserConfig {
         deserializers.put(JSONPObject.class, new JSONPDeserializer());
     }
 
-    private static String[] splitItemsFormProperty(final String property ){
+    private static String[] splitItemsFormProperty(final String property) {
         if (property != null && property.length() > 0) {
             return property.split(",");
         }
@@ -512,8 +523,8 @@ public class ParserConfig {
         }
     }
 
-    private void addItemsToDeny0(final String[] items){
-        if (items == null){
+    private void addItemsToDeny0(final String[] items) {
+        if (items == null) {
             return;
         }
 
@@ -523,8 +534,8 @@ public class ParserConfig {
         }
     }
 
-    private void addItemsToDeny(final String[] items){
-        if (items == null){
+    private void addItemsToDeny(final String[] items) {
+        if (items == null) {
             return;
         }
 
@@ -534,8 +545,8 @@ public class ParserConfig {
         }
     }
 
-    private void addItemsToAccept(final String[] items){
-        if (items == null){
+    private void addItemsToAccept(final String[] items) {
+        if (items == null) {
             return;
         }
 
@@ -638,7 +649,7 @@ public class ParserConfig {
         }
 
         {
-            JSONType annotation = TypeUtils.getAnnotation(clazz,JSONType.class);
+            JSONType annotation = TypeUtils.getAnnotation(clazz, JSONType.class);
             if (annotation != null) {
                 Class<?> mappingTo = annotation.mappingTo();
                 if (mappingTo != Void.class) {
@@ -667,9 +678,9 @@ public class ParserConfig {
         className = className.replace('$', '.');
 
         if (className.startsWith("java.awt.") //
-            && AwtCodec.support(clazz)) {
+                && AwtCodec.support(clazz)) {
             if (!awtError) {
-                String[] names = new String[] {
+                String[] names = new String[]{
                         "java.awt.Point",
                         "java.awt.Font",
                         "java.awt.Rectangle",
@@ -695,7 +706,7 @@ public class ParserConfig {
         if (!jdk8Error) {
             try {
                 if (className.startsWith("java.time.")) {
-                    String[] names = new String[] {
+                    String[] names = new String[]{
                             "java.time.LocalDateTime",
                             "java.time.LocalDate",
                             "java.time.LocalTime",
@@ -717,7 +728,7 @@ public class ParserConfig {
                         }
                     }
                 } else if (className.startsWith("java.util.Optional")) {
-                    String[] names = new String[] {
+                    String[] names = new String[]{
                             "java.util.Optional",
                             "java.util.OptionalDouble",
                             "java.util.OptionalInt",
@@ -739,7 +750,7 @@ public class ParserConfig {
         if (!jodaError) {
             try {
                 if (className.startsWith("org.joda.time.")) {
-                    String[] names = new String[] {
+                    String[] names = new String[]{
                             "org.joda.time.DateTime",
                             "org.joda.time.LocalDate",
                             "org.joda.time.LocalDateTime",
@@ -767,7 +778,7 @@ public class ParserConfig {
         if ((!guavaError) //
                 && className.startsWith("com.google.common.collect.")) {
             try {
-                String[] names = new String[] {
+                String[] names = new String[]{
                         "com.google.common.collect.HashMultimap",
                         "com.google.common.collect.LinkedListMultimap",
                         "com.google.common.collect.LinkedHashMultimap",
@@ -806,7 +817,7 @@ public class ParserConfig {
         final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         try {
             for (AutowiredObjectDeserializer autowired : ServiceLoader.load(AutowiredObjectDeserializer.class,
-                                                                            classLoader)) {
+                    classLoader)) {
                 for (Type forType : autowired.getAutowiredFor()) {
                     putDeserializer(forType, autowired);
                 }
@@ -875,7 +886,7 @@ public class ParserConfig {
         } else if (clazz.isArray()) {
             deserializer = ObjectArrayCodec.instance;
         } else if (clazz == Set.class || clazz == HashSet.class || clazz == Collection.class || clazz == List.class
-                   || clazz == ArrayList.class) {
+                || clazz == ArrayList.class) {
             deserializer = CollectionCodec.instance;
         } else if (Collection.class.isAssignableFrom(clazz)) {
             deserializer = CollectionCodec.instance;
@@ -917,17 +928,17 @@ public class ParserConfig {
 
     /**
      * 可以通过重写这个方法，定义自己的枚举反序列化实现
+     *
      * @param clazz 转换的类型
      * @return 返回一个枚举的反序列化实现
      * @author zhu.xiaojie
      * @time 2020-4-5
      */
-    protected ObjectDeserializer getEnumDeserializer(Class<?> clazz){
+    protected ObjectDeserializer getEnumDeserializer(Class<?> clazz) {
         return new EnumDeserializer(clazz);
     }
 
     /**
-     *
      * @since 1.2.25
      */
     public void initJavaBeanDeserializers(Class<?>... classes) {
@@ -947,7 +958,7 @@ public class ParserConfig {
     public ObjectDeserializer createJavaBeanDeserializer(Class<?> clazz, Type type) {
         boolean asmEnable = this.asmEnable & !this.fieldBased;
         if (asmEnable) {
-            JSONType jsonType = TypeUtils.getAnnotation(clazz,JSONType.class);
+            JSONType jsonType = TypeUtils.getAnnotation(clazz, JSONType.class);
 
             if (jsonType != null) {
                 Class<?> deserializerClass = jsonType.deserializer();
@@ -972,7 +983,7 @@ public class ParserConfig {
                     superClass = clazz;
                 }
 
-                for (;;) {
+                for (; ; ) {
                     if (!Modifier.isPublic(superClass.getModifiers())) {
                         asmEnable = false;
                         break;
@@ -1005,7 +1016,7 @@ public class ParserConfig {
             JavaBeanInfo beanInfo = JavaBeanInfo.build(clazz
                     , type
                     , propertyNamingStrategy
-                    ,false
+                    , false
                     , TypeUtils.compatibleWithJavaBean
                     , jacksonCompatible
             );
@@ -1037,14 +1048,14 @@ public class ParserConfig {
                 }
 
                 if (fieldInfo.getMember() != null //
-                    && !ASMUtils.checkName(fieldInfo.getMember().getName())) {
+                        && !ASMUtils.checkName(fieldInfo.getMember().getName())) {
                     asmEnable = false;
                     break;
                 }
 
                 JSONField annotation = fieldInfo.getAnnotation();
                 if (annotation != null //
-                    && ((!ASMUtils.checkName(annotation.name())) //
+                        && ((!ASMUtils.checkName(annotation.name())) //
                         || annotation.format().length() != 0 //
                         || annotation.deserializeUsing() != Void.class //
                         || annotation.parseFeatures().length != 0 //
@@ -1149,34 +1160,34 @@ public class ParserConfig {
     }
 
     /**
-     * @deprecated  internal method, dont call
+     * @deprecated internal method, dont call
      */
     public boolean isPrimitive(Class<?> clazz) {
         return isPrimitive2(clazz);
     }
 
     /**
-     * @deprecated  internal method, dont call
+     * @deprecated internal method, dont call
      */
     public static boolean isPrimitive2(Class<?> clazz) {
         return clazz.isPrimitive() //
-               || clazz == Boolean.class //
-               || clazz == Character.class //
-               || clazz == Byte.class //
-               || clazz == Short.class //
-               || clazz == Integer.class //
-               || clazz == Long.class //
-               || clazz == Float.class //
-               || clazz == Double.class //
-               || clazz == BigInteger.class //
-               || clazz == BigDecimal.class //
-               || clazz == String.class //
-               || clazz == java.util.Date.class //
-               || clazz == java.sql.Date.class //
-               || clazz == java.sql.Time.class //
-               || clazz == java.sql.Timestamp.class //
-               || clazz.isEnum() //
-        ;
+                || clazz == Boolean.class //
+                || clazz == Character.class //
+                || clazz == Byte.class //
+                || clazz == Short.class //
+                || clazz == Integer.class //
+                || clazz == Long.class //
+                || clazz == Float.class //
+                || clazz == Double.class //
+                || clazz == BigInteger.class //
+                || clazz == BigDecimal.class //
+                || clazz == String.class //
+                || clazz == java.util.Date.class //
+                || clazz == java.sql.Date.class //
+                || clazz == java.sql.Time.class //
+                || clazz == java.sql.Timestamp.class //
+                || clazz.isEnum() //
+                ;
     }
 
     /**
@@ -1185,7 +1196,7 @@ public class ParserConfig {
      * @param clazz
      * @param fieldCacheMap :map&lt;fieldName ,Field&gt;
      */
-    public static void  parserAllFieldToCache(Class<?> clazz,Map</**fieldName*/String , Field> fieldCacheMap){
+    public static void parserAllFieldToCache(Class<?> clazz, Map</**fieldName*/String, Field> fieldCacheMap) {
         Field[] fields = clazz.getDeclaredFields();
         for (Field field : fields) {
             String fieldName = field.getName();
@@ -1250,7 +1261,7 @@ public class ParserConfig {
 
         long hash = TypeUtils.fnv1a_64(name);
         if (internalDenyHashCodes == null) {
-            this.internalDenyHashCodes = new long[] {hash};
+            this.internalDenyHashCodes = new long[]{hash};
             return;
         }
 
@@ -1379,7 +1390,7 @@ public class ParserConfig {
                 * fnv1a_64_magic_prime;
 
         long fullHash = TypeUtils.fnv1a_64(className);
-        boolean internalWhite = Arrays.binarySearch(INTERNAL_WHITELIST_HASHCODES,  fullHash) >= 0;
+        boolean internalWhite = Arrays.binarySearch(INTERNAL_WHITELIST_HASHCODES, fullHash) >= 0;
 
         if (internalDenyHashCodes != null) {
             long hash = h3;
@@ -1398,12 +1409,12 @@ public class ParserConfig {
                 hash ^= className.charAt(i);
                 hash *= fnv1a_64_magic_prime;
                 if (Arrays.binarySearch(acceptHashCodes, hash) >= 0) {
-                    clazz = TypeUtils.loadClass(typeName, defaultClassLoader, true);
+                    clazz = typeUtils.loadClass(typeName, defaultClassLoader, true);
                     if (clazz != null) {
                         return clazz;
                     }
                 }
-                if (Arrays.binarySearch(denyHashCodes, hash) >= 0 && TypeUtils.getClassFromMapping(typeName) == null) {
+                if (Arrays.binarySearch(denyHashCodes, hash) >= 0 && typeUtils.getClassFromMapping(typeName) == null) {
                     if (Arrays.binarySearch(acceptHashCodes, fullHash) >= 0) {
                         continue;
                     }
@@ -1413,7 +1424,7 @@ public class ParserConfig {
             }
         }
 
-        clazz = TypeUtils.getClassFromMapping(typeName);
+        clazz = typeUtils.getClassFromMapping(typeName);
 
         if (clazz == null) {
             clazz = deserializers.findClass(typeName);
@@ -1424,7 +1435,7 @@ public class ParserConfig {
         }
 
         if (internalWhite) {
-            clazz = TypeUtils.loadClass(typeName, defaultClassLoader, true);
+            clazz = typeUtils.loadClass(typeName, defaultClassLoader, true);
         }
 
         if (clazz != null) {
@@ -1451,7 +1462,7 @@ public class ParserConfig {
 
                 // white list
                 if (Arrays.binarySearch(acceptHashCodes, hash) >= 0) {
-                    clazz = TypeUtils.loadClass(typeName, defaultClassLoader, true);
+                    clazz = typeUtils.loadClass(typeName, defaultClassLoader, true);
 
                     if (clazz == null) {
                         return expectClass;
@@ -1494,25 +1505,25 @@ public class ParserConfig {
 
         if (autoTypeSupport || jsonType || expectClassFlag) {
             boolean cacheClass = autoTypeSupport || jsonType;
-            clazz = TypeUtils.loadClass(typeName, defaultClassLoader, cacheClass);
+            clazz = typeUtils.loadClass(typeName, defaultClassLoader, cacheClass);
         }
 
         if (clazz != null) {
             if (jsonType) {
-                TypeUtils.addMapping(typeName, clazz);
+                typeUtils.addMapping(typeName, clazz);
                 return clazz;
             }
 
             if (ClassLoader.class.isAssignableFrom(clazz) // classloader is danger
                     || javax.sql.DataSource.class.isAssignableFrom(clazz) // dataSource can load jdbc driver
                     || javax.sql.RowSet.class.isAssignableFrom(clazz) //
-                    ) {
+            ) {
                 throw new JSONException("autoType is not support. " + typeName);
             }
 
             if (expectClass != null) {
                 if (expectClass.isAssignableFrom(clazz)) {
-                    TypeUtils.addMapping(typeName, clazz);
+                    typeUtils.addMapping(typeName, clazz);
                     return clazz;
                 } else {
                     throw new JSONException("type not match. " + typeName + " -> " + expectClass.getName());
@@ -1530,7 +1541,7 @@ public class ParserConfig {
         }
 
         if (clazz != null) {
-            TypeUtils.addMapping(typeName, clazz);
+            typeUtils.addMapping(typeName, clazz);
         }
 
         return clazz;

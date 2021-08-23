@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
+import com.alibaba.fastjson.util.ModuleUtil;
 import junit.framework.TestCase;
 
 import org.junit.Assert;
@@ -26,22 +27,25 @@ import com.alibaba.fastjson.util.TypeUtils;
 public class TypeUtilsTest extends TestCase {
 
     public void test_0() throws Exception {
+        TypeUtils typeUtils= ModuleUtil.getObject(TypeUtils.class);
         HashMap map = new HashMap();
 
-        Assert.assertTrue(map == TypeUtils.castToJavaBean(map, Map.class));
+        Assert.assertTrue(map == typeUtils.castToJavaBean(map, Map.class));
     }
 
     public void test_1() throws Exception {
+        TypeUtils typeUtils= ModuleUtil.getObject(TypeUtils.class);
         JSONObject map = new JSONObject();
-        Assert.assertTrue(map == TypeUtils.castToJavaBean(map, Map.class));
+        Assert.assertTrue(map == typeUtils.castToJavaBean(map, Map.class));
     }
 
     public void test_2() throws Exception {
+        TypeUtils typeUtils= ModuleUtil.getObject(TypeUtils.class);
         JSONObject map = new JSONObject();
         map.put("id", 1);
         map.put("name", "panlei");
 
-        User user = TypeUtils.castToJavaBean(map, User.class);
+        User user = typeUtils.castToJavaBean(map, User.class);
         Assert.assertEquals(1L, user.getId());
         Assert.assertEquals("panlei", user.getName());
     }
@@ -161,7 +165,9 @@ public class TypeUtilsTest extends TestCase {
     }
 
     public void test_cast_to_SqlDate_null2() throws Exception {
-        Assert.assertEquals(null, TypeUtils.castToSqlDate(null));
+        TypeUtils typeUtils = ModuleUtil.getObject(TypeUtils.class);
+
+        Assert.assertEquals(null, typeUtils.castToSqlDate(null));
     }
 
     public void test_cast_to_SqlDate_util_Date() throws Exception {
@@ -181,10 +187,11 @@ public class TypeUtilsTest extends TestCase {
     }
 
     public void test_cast_to_SqlDate_sql_Date2() throws Exception {
+        TypeUtils typeUtils = ModuleUtil.getObject(TypeUtils.class);
         long millis = System.currentTimeMillis();
 
         java.sql.Date date = new java.sql.Date(millis);
-        Assert.assertEquals(date, TypeUtils.castToSqlDate(date));
+        Assert.assertEquals(date, typeUtils.castToSqlDate(date));
     }
 
     public void test_cast_to_SqlDate_calendar() throws Exception {
@@ -242,12 +249,14 @@ public class TypeUtilsTest extends TestCase {
     }
 
     public void test_cast_to_Timestamp_null2() throws Exception {
-        Assert.assertEquals(null, TypeUtils.castToTimestamp(null));
+        TypeUtils typeUtils= ModuleUtil.getObject(TypeUtils.class);
+        Assert.assertEquals(null, typeUtils.castToTimestamp(null));
     }
 
     public void test_cast_to_Timestamp_1970_01_01_00_00_00() throws Exception {
+        TypeUtils typeUtils= ModuleUtil.getObject(TypeUtils.class);
         JSON.defaultTimeZone = TimeZone.getTimeZone("Asia/Shanghai");
-        Assert.assertEquals(new Timestamp(0), TypeUtils.castToTimestamp("1970-01-01 08:00:00"));
+        Assert.assertEquals(new Timestamp(0), typeUtils.castToTimestamp("1970-01-01 08:00:00"));
     }
 
     public void test_cast_to_BigDecimal_same() throws Exception {
@@ -261,7 +270,8 @@ public class TypeUtilsTest extends TestCase {
     }
 
     public void test_cast_Array() throws Exception {
-        Assert.assertEquals(Integer[].class, TypeUtils.cast(new ArrayList(), Integer[].class, null).getClass());
+        TypeUtils typeUtils= ModuleUtil.getObject(TypeUtils.class);
+        Assert.assertEquals(Integer[].class, typeUtils.cast(new ArrayList(), Integer[].class, null).getClass());
     }
 
     public void test_cast_to_Timestamp_util_Date() throws Exception {
@@ -281,10 +291,11 @@ public class TypeUtilsTest extends TestCase {
     }
 
     public void test_cast_to_Timestamp_sql_Timestamp() throws Exception {
+        TypeUtils typeUtils= ModuleUtil.getObject(TypeUtils.class);
         long millis = System.currentTimeMillis();
 
         java.sql.Timestamp date = new java.sql.Timestamp(millis);
-        Assert.assertEquals(date, TypeUtils.castToTimestamp(date));
+        Assert.assertEquals(date, typeUtils.castToTimestamp(date));
     }
 
     public void test_cast_to_Timestamp_calendar() throws Exception {
@@ -357,6 +368,7 @@ public class TypeUtilsTest extends TestCase {
     }
 
     public void test_error_2() throws Exception {
+        TypeUtils typeUtils= ModuleUtil.getObject(TypeUtils.class);
         JSONObject json = new JSONObject();
         json.put("id", 1);
 
@@ -364,7 +376,7 @@ public class TypeUtilsTest extends TestCase {
 
         Throwable error = null;
         try {
-            TypeUtils.cast(json, method.getGenericParameterTypes()[0], ParserConfig.getGlobalInstance());
+            typeUtils.cast(json, method.getGenericParameterTypes()[0], ParserConfig.getGlobalInstance());
         } catch (JSONException ex) {
             error = ex;
         }

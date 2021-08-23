@@ -60,6 +60,12 @@ public class SerializeConfig {
     
     private static boolean                                jodaError       = false;
 
+    private static TypeUtils typeUtils;
+
+    static {
+        typeUtils = ModuleUtil.getObject(TypeUtils.class);
+    }
+
     private boolean                                       asm             = !ASMUtils.IS_ANDROID;
     private ASMSerializerFactory                          asmFactory;
     protected String                                      typeKey         = JSON.DEFAULT_TYPE_KEY;
@@ -575,7 +581,7 @@ public class SerializeConfig {
             } else if (Calendar.class.isAssignableFrom(clazz) //
                     || XMLGregorianCalendar.class.isAssignableFrom(clazz)) {
                 put(clazz, writer = CalendarCodec.instance);
-            } else if (TypeUtils.isClob(clazz)) {
+            } else if (typeUtils.isClob(clazz)) {
                 put(clazz, writer = ClobSerializer.instance);
             } else if (TypeUtils.isPath(clazz)) {
                 put(clazz, writer = ToStringSerializer.instance);

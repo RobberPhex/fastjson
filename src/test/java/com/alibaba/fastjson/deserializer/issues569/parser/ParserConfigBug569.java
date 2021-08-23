@@ -30,6 +30,7 @@ public class ParserConfigBug569 extends ParserConfig {
     private static boolean                                  jdk8Error   = false;
     private String[]                                        denyList    = new String[] { "java.lang.Thread" };
 
+    @Override
     public FieldDeserializer createFieldDeserializer(ParserConfig mapping, //
                                                      JavaBeanInfo beanInfo, //
                                                      FieldInfo fieldInfo) {
@@ -52,6 +53,7 @@ public class ParserConfigBug569 extends ParserConfig {
         return new DefaultFieldDeserializerBug569(mapping, clazz, fieldInfo);
     }
 
+    @Override
     public ObjectDeserializer getDeserializer(Class<?> clazz, Type type) {
         com.alibaba.fastjson.util.IdentityHashMap<Type, ObjectDeserializer> deserializers = super.getDeserializers();
         ObjectDeserializer deserializer = deserializers.get(type);

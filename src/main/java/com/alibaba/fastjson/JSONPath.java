@@ -14,6 +14,7 @@ import com.alibaba.fastjson.serializer.JavaBeanSerializer;
 import com.alibaba.fastjson.serializer.ObjectSerializer;
 import com.alibaba.fastjson.serializer.SerializeConfig;
 import com.alibaba.fastjson.util.IOUtils;
+import com.alibaba.fastjson.util.ModuleUtil;
 import com.alibaba.fastjson.util.TypeUtils;
 
 import java.lang.reflect.Array;
@@ -46,6 +47,12 @@ import java.util.regex.Pattern;
  */
 public class JSONPath implements JSONAware {
     private static ConcurrentMap<String, JSONPath> pathCache  = new ConcurrentHashMap<String, JSONPath>(128, 0.75f, 1);
+
+    private static TypeUtils typeUtils;
+
+    static {
+        typeUtils = ModuleUtil.getObject(TypeUtils.class);
+    }
 
     private final String                           path;
     private Segment[]                              segments;
@@ -132,7 +139,7 @@ public class JSONPath implements JSONAware {
      */
     public <T> T eval(Object rootObject, Type clazz, ParserConfig parserConfig) {
         Object obj = this.eval(rootObject);
-        return TypeUtils.cast(obj, clazz, parserConfig);
+        return typeUtils.cast(obj, clazz, parserConfig);
     }
     
     /**
@@ -4161,7 +4168,7 @@ public class JSONPath implements JSONAware {
             }
 
             if (value != null && value.getClass() != fieldDeserializer.fieldInfo.fieldClass) {
-                value = TypeUtils.cast(value, fieldDeserializer.fieldInfo.fieldType, parserConfig);
+                value = typeUtils.cast(value, fieldDeserializer.fieldInfo.fieldType, parserConfig);
             }
 
             fieldDeserializer.setValue(parent, value);

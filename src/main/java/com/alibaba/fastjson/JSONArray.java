@@ -25,9 +25,7 @@ import static com.alibaba.fastjson.util.TypeUtils.castToFloat;
 import static com.alibaba.fastjson.util.TypeUtils.castToInt;
 import static com.alibaba.fastjson.util.TypeUtils.castToLong;
 import static com.alibaba.fastjson.util.TypeUtils.castToShort;
-import static com.alibaba.fastjson.util.TypeUtils.castToSqlDate;
 import static com.alibaba.fastjson.util.TypeUtils.castToString;
-import static com.alibaba.fastjson.util.TypeUtils.castToTimestamp;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -38,6 +36,7 @@ import java.math.BigInteger;
 import java.util.*;
 
 import com.alibaba.fastjson.parser.ParserConfig;
+import com.alibaba.fastjson.util.ModuleUtil;
 import com.alibaba.fastjson.util.TypeUtils;
 
 /**
@@ -49,6 +48,12 @@ public class JSONArray extends JSON implements List<Object>, Cloneable, RandomAc
     private final List<Object> list;
     protected transient Object relatedArray;
     protected transient Type   componentType;
+
+    private static TypeUtils typeUtils;
+
+    static {
+        typeUtils = ModuleUtil.getObject(TypeUtils.class);
+    }
 
     public JSONArray(){
         this.list = new ArrayList<Object>();
@@ -270,13 +275,13 @@ public class JSONArray extends JSON implements List<Object>, Cloneable, RandomAc
 
     public <T> T getObject(int index, Class<T> clazz) {
         Object obj = list.get(index);
-        return TypeUtils.castToJavaBean(obj, clazz);
+        return typeUtils.castToJavaBean(obj, clazz);
     }
 
     public <T> T getObject(int index, Type type) {
         Object obj = list.get(index);
         if (type instanceof Class) {
-            return (T) TypeUtils.castToJavaBean(obj, (Class) type);
+            return (T) typeUtils.castToJavaBean(obj, (Class) type);
         } else {
             String json = JSON.toJSONString(obj);
             return (T) JSON.parseObject(json, type);
@@ -429,16 +434,16 @@ public class JSONArray extends JSON implements List<Object>, Cloneable, RandomAc
         return castToDate(value);
     }
 
-    public java.sql.Date getSqlDate(int index) {
+    public Object getSqlDate(int index) {
         Object value = get(index);
 
-        return castToSqlDate(value);
+        return typeUtils.castToSqlDate(value);
     }
 
-    public java.sql.Timestamp getTimestamp(int index) {
+    public Object getTimestamp(int index) {
         Object value = get(index);
 
-        return castToTimestamp(value);
+        return typeUtils.castToTimestamp(value);
     }
 
     /**
@@ -450,7 +455,7 @@ public class JSONArray extends JSON implements List<Object>, Cloneable, RandomAc
         ParserConfig config = ParserConfig.getGlobalInstance();
 
         for (Object item : this) {
-            T classItem = (T) TypeUtils.cast(item, clazz, config);
+            T classItem = (T) typeUtils.cast(item, clazz, config);
             list.add(classItem);
         }
 
@@ -462,10 +467,12 @@ public class JSONArray extends JSON implements List<Object>, Cloneable, RandomAc
         return new JSONArray(new ArrayList<Object>(list));
     }
 
+    @Override
     public boolean equals(Object obj) {
         return this.list.equals(obj);
     }
 
+    @Override
     public int hashCode() {
         return this.list.hashCode();
     }
@@ -489,7 +496,7 @@ public class JSONArray extends JSON implements List<Object>, Cloneable, RandomAc
             }
 
             String typeName = item.getClass().getName();
-            if (TypeUtils.getClassFromMapping(typeName) == null) {
+            if (typeUtils.getClassFromMapping(typeName) == null) {
                 ParserConfig.global.checkAutoType(typeName, null);
             }
         }

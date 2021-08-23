@@ -1,5 +1,6 @@
 package com.alibaba.json.bvt.bug;
 
+import com.alibaba.fastjson.util.ModuleUtil;
 import junit.framework.TestCase;
 
 import com.alibaba.fastjson.parser.ParserConfig;
@@ -8,11 +9,12 @@ import com.alibaba.fastjson.util.TypeUtils;
 public class Bug_102_for_rongganlin extends TestCase {
 
     public void test_bug() throws Exception {
+        TypeUtils typeUtils = ModuleUtil.getObject(TypeUtils.class);
         TestBean testProcessInfo = new TestBean();
         com.alibaba.fastjson.JSONObject jo = new com.alibaba.fastjson.JSONObject();
         jo.put("id", 121);
         ParserConfig config = new ParserConfig();
-        testProcessInfo = TypeUtils.cast(jo, TestBean.class, config);
+        testProcessInfo = typeUtils.cast(jo, TestBean.class, config);
     }
 
     public static class TestBean {

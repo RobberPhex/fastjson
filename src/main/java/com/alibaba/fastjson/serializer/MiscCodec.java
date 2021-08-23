@@ -41,6 +41,7 @@ import com.alibaba.fastjson.parser.JSONLexer;
 import com.alibaba.fastjson.parser.JSONToken;
 import com.alibaba.fastjson.parser.deserializer.ObjectDeserializer;
 import com.alibaba.fastjson.util.IOUtils;
+import com.alibaba.fastjson.util.ModuleUtil;
 import com.alibaba.fastjson.util.TypeUtils;
 import org.w3c.dom.Node;
 
@@ -59,7 +60,10 @@ public class MiscCodec implements ObjectSerializer, ObjectDeserializer {
     private static      Method    method_paths_get;
     private static      boolean   method_paths_get_error     = false;
 
+    private static TypeUtils typeUtils;
+
     static {
+        typeUtils = ModuleUtil.getObject(TypeUtils.class);
         FILE_RELATIVE_PATH_SUPPORT = "true".equals(IOUtils.getStringProperty("fastjson.deserializer.fileRelativePathSupport"));
     }
 
@@ -356,7 +360,7 @@ public class MiscCodec implements ObjectSerializer, ObjectDeserializer {
         }
 
         if (clazz == Class.class) {
-            return (T) TypeUtils.loadClass(strVal, parser.getConfig().getDefaultClassLoader(), false);
+            return (T) typeUtils.loadClass(strVal, parser.getConfig().getDefaultClassLoader(), false);
         }
 
         if (clazz == Charset.class) {
@@ -379,7 +383,7 @@ public class MiscCodec implements ObjectSerializer, ObjectDeserializer {
             if (className.equals("java.nio.file.Path")) {
                 try {
                     if (method_paths_get == null && !method_paths_get_error) {
-                        Class<?> paths = TypeUtils.loadClass("java.nio.file.Paths");
+                        Class<?> paths = typeUtils.loadClass("java.nio.file.Paths");
                         method_paths_get = paths.getMethod("get", String.class, String[].class);
                     }
                     if (method_paths_get != null) {

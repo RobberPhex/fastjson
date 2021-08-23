@@ -2,6 +2,7 @@ package com.alibaba.json.bvt.bug;
 
 import java.lang.reflect.Type;
 
+import com.alibaba.fastjson.util.ModuleUtil;
 import junit.framework.TestCase;
 
 import org.junit.Test;
@@ -23,13 +24,14 @@ public class Issue96 extends TestCase {
     }
 
     public void xx_testCast() {
+        TypeUtils typeUtils = ModuleUtil.getObject(TypeUtils.class);
         Page<Sub> page = new Page<Sub>(new Sub(1));
         Type type = new TypeReference<Page<Sub>>() {
         }.getType();
         ParserConfig parserconfig = ParserConfig.getGlobalInstance();
         // !!!! this will fail:
         // !!!! com.alibaba.fastjson.JSONException: can not cast to : Page<Sub> TypeUtils.java:719
-        Page<Sub> page1 = TypeUtils.cast(page, type, parserconfig);
+        Page<Sub> page1 = typeUtils.cast(page, type, parserconfig);
         System.out.println(page1.sub.getClass());
     }
 

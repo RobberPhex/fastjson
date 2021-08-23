@@ -46,6 +46,12 @@ public class JavaBeanInfo {
     public boolean kotlin;
     public Constructor<?> kotlinDefaultConstructor;
 
+    private static TypeUtils typeUtils;
+
+    static {
+        typeUtils = ModuleUtil.getObject(TypeUtils.class);
+    }
+
     public JavaBeanInfo(Class<?> clazz, //
                         Class<?> builderClass, //
                         Constructor<?> defaultConstructor, //
@@ -1137,7 +1143,7 @@ public class JavaBeanInfo {
 
     public static Class<?> getBuilderClass(Class<?> clazz, JSONType type) {
         if (clazz != null && clazz.getName().equals("org.springframework.security.web.savedrequest.DefaultSavedRequest")) {
-            return TypeUtils.loadClass("org.springframework.security.web.savedrequest.DefaultSavedRequest$Builder");
+            return typeUtils.loadClass("org.springframework.security.web.savedrequest.DefaultSavedRequest$Builder");
         }
 
         if (type == null) {

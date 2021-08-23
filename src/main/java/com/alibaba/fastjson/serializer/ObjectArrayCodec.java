@@ -27,6 +27,7 @@ import com.alibaba.fastjson.parser.DefaultJSONParser;
 import com.alibaba.fastjson.parser.JSONLexer;
 import com.alibaba.fastjson.parser.JSONToken;
 import com.alibaba.fastjson.parser.deserializer.ObjectDeserializer;
+import com.alibaba.fastjson.util.ModuleUtil;
 import com.alibaba.fastjson.util.TypeUtils;
 
 /**
@@ -35,6 +36,12 @@ import com.alibaba.fastjson.util.TypeUtils;
 public class ObjectArrayCodec implements ObjectSerializer, ObjectDeserializer {
 
     public static final ObjectArrayCodec instance = new ObjectArrayCodec();
+
+    private static TypeUtils typeUtils;
+
+    static {
+        typeUtils = ModuleUtil.getObject(TypeUtils.class);
+    }
 
     public ObjectArrayCodec(){
     }
@@ -230,7 +237,7 @@ public class ObjectArrayCodec implements ObjectSerializer, ObjectDeserializer {
                 }
 
                 if (element == null) {
-                    element = TypeUtils.cast(value, componentType, parser.getConfig());
+                    element = typeUtils.cast(value, componentType, parser.getConfig());
                 }
                 Array.set(objArray, i, element);
 

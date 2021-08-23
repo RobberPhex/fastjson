@@ -3,6 +3,7 @@ package com.alibaba.json.bvt.issue_1300;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONCreator;
 import com.alibaba.fastjson.annotation.JSONField;
+import com.alibaba.fastjson.util.ModuleUtil;
 import com.alibaba.fastjson.util.TypeUtils;
 import junit.framework.TestCase;
 import org.junit.Assert;
@@ -12,18 +13,20 @@ import org.junit.Assert;
  */
 public class Issue1300 extends TestCase {
     public void testFullJSON() {
+        TypeUtils typeUtils = ModuleUtil.getObject(TypeUtils.class);
         JSONObject data = new JSONObject();
         data.put("name", "string");
         data.put("code", 1);
         data.put("pinyin", "pinyin");
-        City object = TypeUtils.castToJavaBean(data, City.class);
+        City object = typeUtils.castToJavaBean(data, City.class);
         assertEquals("string", object.name);
         assertEquals(1, object.code);
         assertEquals("pinyin", object.pinyin);
     }
 
     public void testEmptyJSON() {
-        City object = TypeUtils.castToJavaBean(new JSONObject(), City.class);
+        TypeUtils typeUtils = ModuleUtil.getObject(TypeUtils.class);
+        City object = typeUtils.castToJavaBean(new JSONObject(), City.class);
         Assert.assertEquals(null, object.name);
         Assert.assertEquals(0, object.code);
     }
