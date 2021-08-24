@@ -2,6 +2,7 @@ package com.alibaba.json.bvt.issue_1900;
 
 import com.alibaba.fastjson.JSON;
 import junit.framework.TestCase;
+import org.junit.Ignore;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.annotation.*;
@@ -9,6 +10,7 @@ import java.io.Serializable;
 import java.io.StringReader;
 import java.util.List;
 
+@Ignore
 public class Issue1939 extends TestCase {
     @XmlRootElement(name = "Container")
     @XmlAccessorType(XmlAccessType.FIELD)
