@@ -1,11 +1,11 @@
 package com.alibaba.fastjson.util;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ModuleUtil {
-    private static Map<Class, Object> mKHMap = new HashMap<Class, Object>();
+    private static Map<Class, Object> moduleObjectMap = new ConcurrentHashMap<Class, Object>();
     private static boolean hasJavaSql = false;
 
     static {
@@ -16,19 +16,24 @@ public class ModuleUtil {
             hasJavaSql = false;
         }
         if (hasJavaSql) {
-            mKHMap.put(TypeUtils.class, new com.alibaba.fastjson.withjavasql.TypeUtils());
+            moduleObjectMap.put(TypeUtils.class, new com.alibaba.fastjson.withjavasql.TypeUtils());
         } else {
-            mKHMap.put(TypeUtils.class, new TypeUtils());
+            moduleObjectMap.put(TypeUtils.class, new TypeUtils());
         }
     }
 
     public static <T> T getObject(Class<T> className) {
-        return (T) mKHMap.get(className);
+        return (T) moduleObjectMap.get(className);
     }
 
-    public static void callWhenJavaSql(Runnable runnable) {
+    public static <T> T callWhenHasJavaSql(Callable<T> callable) {
         if (hasJavaSql) {
-            runnable.run();
+            try {
+                return callable.call();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
+        return null;
     }
 }

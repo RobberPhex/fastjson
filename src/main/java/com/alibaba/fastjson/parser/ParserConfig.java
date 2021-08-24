@@ -408,16 +408,6 @@ public class ParserConfig {
 
     private void initDeserializers() {
         deserializers.put(SimpleDateFormat.class, MiscCodec.instance);
-
-        ModuleUtil.callWhenJavaSql(new Runnable() {
-            public void run() {
-                deserializers.put(java.sql.Timestamp.class, SqlDateDeserializer.instance_timestamp);
-                deserializers.put(java.sql.Date.class, SqlDateDeserializer.instance);
-                deserializers.put(java.sql.Time.class, TimeDeserializer.instance);
-                deserializers.put(java.util.Date.class, DateCodec.instance);
-            }
-        });
-
         deserializers.put(Calendar.class, CalendarCodec.instance);
         deserializers.put(XMLGregorianCalendar.class, CalendarCodec.instance);
 
@@ -493,6 +483,15 @@ public class ParserConfig {
         deserializers.put(Closeable.class, JavaObjectDeserializer.instance);
 
         deserializers.put(JSONPObject.class, new JSONPDeserializer());
+        ModuleUtil.callWhenHasJavaSql(new Callable<Void>() {
+            public Void call() throws Exception {
+                deserializers.put(java.sql.Timestamp.class, SqlDateDeserializer.instance_timestamp);
+                deserializers.put(java.sql.Date.class, SqlDateDeserializer.instance);
+                deserializers.put(java.sql.Time.class, TimeDeserializer.instance);
+                deserializers.put(java.util.Date.class, DateCodec.instance);
+                return null;
+            }
+        });
     }
 
     private static String[] splitItemsFormProperty(final String property) {
@@ -1169,8 +1168,8 @@ public class ParserConfig {
     /**
      * @deprecated internal method, dont call
      */
-    public static boolean isPrimitive2(Class<?> clazz) {
-        return clazz.isPrimitive() //
+    public static boolean isPrimitive2(final Class<?> clazz) {
+        Boolean primitive = clazz.isPrimitive() //
                 || clazz == Boolean.class //
                 || clazz == Character.class //
                 || clazz == Byte.class //
@@ -1183,11 +1182,18 @@ public class ParserConfig {
                 || clazz == BigDecimal.class //
                 || clazz == String.class //
                 || clazz == java.util.Date.class //
-                || clazz == java.sql.Date.class //
-                || clazz == java.sql.Time.class //
-                || clazz == java.sql.Timestamp.class //
                 || clazz.isEnum() //
                 ;
+        if (!primitive) {
+            primitive = ModuleUtil.callWhenHasJavaSql(new Callable<Boolean>() {
+                public Boolean call() {
+                    return clazz == java.sql.Date.class //
+                            || clazz == java.sql.Time.class //
+                            || clazz == java.sql.Timestamp.class;
+                }
+            });
+        }
+        return primitive != null ? primitive : false;
     }
 
     /**
