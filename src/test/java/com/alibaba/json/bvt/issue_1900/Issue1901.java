@@ -2,6 +2,7 @@ package com.alibaba.json.bvt.issue_1900;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.annotation.JSONField;
+import junit.framework.Assert;
 import junit.framework.TestCase;
 
 import java.util.Date;
@@ -11,6 +12,7 @@ import java.util.TimeZone;
 public class Issue1901 extends TestCase {
     protected Locale locale;
     protected TimeZone timeZone;
+
     protected void setUp() throws Exception {
         locale = JSON.defaultLocale;
         timeZone = JSON.defaultTimeZone;
@@ -25,12 +27,22 @@ public class Issue1901 extends TestCase {
 
     public void test_for_issue() throws Exception {
         Model m = JSON.parseObject("{\"time\":\"Thu Mar 22 08:58:37 +0000 2018\"}", Model.class);
-        assertEquals("{\"time\":\"星期四 三月 22 16:58:37 CST 2018\"}", JSON.toJSONString(m));
+        String jsonStr = JSON.toJSONString(m);
+        assertTrue("jsonStr is " + jsonStr,
+                "{\"time\":\"星期四 三月 22 16:58:37 CST 2018\"}".equals(jsonStr) ||
+                        "{\"time\":\"周四 3月 22 16:58:37 CST 2018\"}".equals(jsonStr)
+
+        );
     }
 
     public void test_for_issue_1() throws Exception {
         Model m = JSON.parseObject("{\"time\":\"星期四 三月 22 16:58:37 CST 2018\"}", Model.class);
-        assertEquals("{\"time\":\"星期四 三月 22 16:58:37 CST 2018\"}", JSON.toJSONString(m));
+        String jsonStr = JSON.toJSONString(m);
+        assertTrue("jsonStr is " + jsonStr,
+                "{\"time\":\"星期四 三月 22 16:58:37 CST 2018\"}".equals(jsonStr) ||
+                        "{\"time\":\"周四 3月 22 16:58:37 CST 2018\"}".equals(jsonStr)
+
+        );
     }
 
     public static class Model {

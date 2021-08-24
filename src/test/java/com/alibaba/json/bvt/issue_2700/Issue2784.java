@@ -6,12 +6,13 @@ import junit.framework.TestCase;
 
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 public class Issue2784 extends TestCase {
     public void test_for_issue() throws Exception {
         Model m = new Model();
-        m.time = java.time.LocalDateTime.now();
+        m.time = java.time.LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS);
         String str = JSON.toJSONString(m);
         assertEquals("{\"time\":"
                 + m.time.atZone(JSON.defaultTimeZone.toZoneId()).toInstant().toEpochMilli()
