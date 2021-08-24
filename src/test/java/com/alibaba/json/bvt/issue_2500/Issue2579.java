@@ -56,7 +56,7 @@ public class Issue2579 extends TestCase {
 		List<String> list = new ArrayList<String>();
 		list.add("\"@type\":\"com.alibaba.json.bvt.issue_2500.Issue2579$" + className + "\"");
 		list.add("\"date\":1563867975335");
-		list.add("\"id\":\"0f075036-9e52-4821-800a-9c51761a7227b\"");
+		list.add("\"id\":\"0f075036-9e52-4821-800a-9c51761a7227\"");
 		list.add("\"location\":{\"@type\":\"java.awt.Point\",\"x\":11,\"y\":1}");
 		list.add("\"point\":{\"@type\":\"java.awt.Point\",\"x\":9,\"y\":1}");
 		list.add(

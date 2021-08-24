@@ -31,7 +31,6 @@ public class Issue1901 extends TestCase {
         assertTrue("jsonStr is " + jsonStr,
                 "{\"time\":\"星期四 三月 22 16:58:37 CST 2018\"}".equals(jsonStr) ||
                         "{\"time\":\"周四 3月 22 16:58:37 CST 2018\"}".equals(jsonStr)
-
         );
     }
 
