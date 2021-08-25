@@ -515,6 +515,7 @@ public class JavaBeanInfo {
                             continue;
                         }
 
+                        TypeUtils.setAccessible(constructor);
                         paramNames = lookupParameterNames;
                         creatorConstructor = constructor;
                     }
