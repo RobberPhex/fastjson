@@ -12,8 +12,10 @@ public class ModuleUtil {
         try {
             Class.forName("java.sql.Time");
             hasJavaSql = true;
+            System.out.println("has java.sql");
         } catch (Throwable e) {
             hasJavaSql = false;
+            System.out.println("doesn't have java.sql");
         }
         if (hasJavaSql) {
             moduleObjectMap.put(TypeUtils.class, new com.alibaba.fastjson.withjavasql.TypeUtils());
@@ -27,6 +29,8 @@ public class ModuleUtil {
     }
 
     public static <T> T callWhenHasJavaSql(Callable<T> callable) {
+
+        System.out.println("in hasJavaSql="+hasJavaSql);
         if (hasJavaSql) {
             try {
                 return callable.call();

@@ -484,7 +484,9 @@ public class ParserConfig {
 
         deserializers.put(JSONPObject.class, new JSONPDeserializer());
         ModuleUtil.callWhenHasJavaSql(new Callable<Void>() {
-            public Void call() throws Exception {
+            @Override
+            public Void call() {
+                System.out.println("in parserconfig");
                 deserializers.put(java.sql.Timestamp.class, SqlDateDeserializer.instance_timestamp);
                 deserializers.put(java.sql.Date.class, SqlDateDeserializer.instance);
                 deserializers.put(java.sql.Time.class, TimeDeserializer.instance);
