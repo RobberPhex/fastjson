@@ -20,9 +20,13 @@ public class Bug_for_smoothrat3 extends TestCase {
         System.out.println(text);
         Assert.assertEquals("{\"@type\":\"com.alibaba.json.bvt.bug.Bug_for_smoothrat3$Entity\",\"value\":{\"@type\":\"java.sql.Time\",\"val\":" + millis + "}}", text);
 
-        Entity entity2 = JSON.parseObject(text, Entity.class);
-        Assert.assertEquals(time, entity2.getValue());
-        
+        try {
+            Entity entity2 = JSON.parseObject(text, Entity.class);
+            Assert.assertEquals(time, entity2.getValue());
+        }catch (Exception e){
+            e.printStackTrace();
+            Assert.fail();
+        }
     }
 
     public static class Entity {
