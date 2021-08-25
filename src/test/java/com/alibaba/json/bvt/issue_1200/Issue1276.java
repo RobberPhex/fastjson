@@ -14,9 +14,13 @@ public class Issue1276 extends TestCase {
 
         MyException myException1 = JSON.parseObject(str, MyException.class);
         assertEquals(myException.getCode(), myException1.getCode());
-
         String str1 = JSON.toJSONString(myException1);
-        assertEquals(str, str1);
+
+        MyException myException2 = JSON.parseObject(str, MyException.class);
+        assertEquals(myException.getCode(), myException2.getCode());
+        String str2 = JSON.toJSONString(myException2);
+
+        assertEquals(str1, str2);
 
     }
 
